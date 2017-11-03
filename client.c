@@ -3,6 +3,7 @@
 char choose, pid;
 int initial()
 {
+	fflush(stdin);
 	puts("===================================================");
 	puts("(a)list all process ids");
 	puts("(b)thread's IDs");

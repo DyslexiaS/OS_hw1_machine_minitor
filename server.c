@@ -18,7 +18,7 @@ typedef struct {
 
 char buffer[2048];
 char message[]= {"Hi, this is server.\n"};
-int sockfd = 0,ClientSockfd = 0;
+int sockfd = 0,ClientSockfd = 0, new_sock=0;
 int main (int argc, char **argv)
 {
 	sockaddr_in serv_info,client_info;
@@ -34,12 +34,35 @@ int main (int argc, char **argv)
 	//connect
 	bind(sockfd,(sockaddr *)&serv_info, sizeof(serv_info));
 	listen(sockfd, 5);
-	while(1) {
-		ClientSockfd = accept(sockfd, (sockaddr*)&client_info, &addrlen);
-		//	send(ClientSockfd, buffer, sizeof(buffer), 0);
-		send(ClientSockfd, message, sizeof(message), 0);
-		recv(ClientSockfd, buffer, sizeof(message), 0);
-		printf("%s\n",buffer);
+	//pthread
+	while(new_sock = accept(sockfd, (sockaddr*)&client_info, &addrlen))	{
+		puts("Connection accepted");
+		pthread_t new_thread;
+		if( pthread_create(&new_thread, NULL, connection_handler, (void*)&new_sock)<0) {
+			perror("Couldn't create thread.\n");
+			return 1;
+		}
+		pthread_join(new_thread, NULL);
 	}
+	/*
+		while(1) {
+			ClientSockfd = accept(sockfd, (sockaddr*)&client_info, &addrlen);
+
+			//	send(ClientSockfd, buffer, sizeof(buffer), 0);
+			send(ClientSockfd, message, sizeof(message), 0);
+			recv(ClientSockfd, buffer, sizeof(message), 0);
+			printf("%s\n",buffer);
+		}
+	*/
 	return 0;
+}
+void *connection_handler(void *sockfd)
+{
+	//Get socket descriptor
+	int sock = *(int*)sockfd;
+	//commute
+
+
+
+	free(sockfd);
 }

@@ -1,6 +1,45 @@
 #include"server.h"
 #define SERV_PORT 8740
+typedef struct {
+	short			sin_family;		//AF_INET(IPv4)
+	unsigned short	sin_port;		//port No
+	struct	in_addr	sin_addr;
+	char			sin_zero[8];
+} sockaddr_in;
+
+typedef struct {
+	unsigned long s_addr;			//load with inet+pton()
+} in_addr;
+
+typedef struct {
+	unsigned short   sa_family;//addr of family, AF_XXXX
+	char            sa_data[14];//14 bytes of protocol addr
+} sockaddr;
+
+char buffer[2048];
+char message[]= {"Hi, this is server.\n"};
+int sockfd = 0,ClientSockfd = 0;
 int main (int argc, char **argv)
 {
+	sockaddr_in serv_info,client_info;
+	int addrlen = sizeof(client_info);
+	bzero(&serv_info,sizeof(serv_info));	//init
+	serv_info.sin_family = AF_INET;
+	serv_info.sin_addr.s_addr = inet_addr("127.0.0.1"); //IP addr
+	serv_info.sin_port = htons(SERV_PORT); //host to network short int
+	//creat a socket
+	sockfd = socket(PF_INET, SOCK_STREAM, 0);
+	if(sockfd <0)	printf("Fail to creat a socket.");
+
+	//connect
+	bind(sockfd,(sockaddr *)&serv_info, sizeof(serv_info));
+	listen(sockfd, 5);
+	while(1) {
+		ClientSockfd = accept(sockfd, (sockaddr*)&client_info, &addrlen);
+		//	send(ClientSockfd, buffer, sizeof(buffer), 0);
+		send(ClientSockfd, message, sizeof(message), 0);
+		recv(ClientSockfd, buffer, sizeof(message), 0);
+		printf("%s\n",buffer);
+	}
 	return 0;
 }

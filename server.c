@@ -32,7 +32,10 @@ int main (int argc, char **argv)
 	if(sockfd <0)	printf("Fail to creat a socket.");
 
 	//connect
-	bind(sockfd,(sockaddr *)&serv_info, sizeof(serv_info));
+	if(bind(sockfd,(sockaddr *)&serv_info, sizeof(serv_info))<0)	{
+		printf("Address already in use.");
+		return 0;
+	}
 	listen(sockfd, 5);
 	//pthread
 	while(new_sock = accept(sockfd, (sockaddr*)&client_info, &addrlen))	{
@@ -61,8 +64,7 @@ void *connection_handler(void *sockfd)
 	//Get socket descriptor
 	int sock = *(int*)sockfd;
 	//commute
+	send(sock, message, sizeof(message), 0);
 
 
-
-	free(sockfd);
 }

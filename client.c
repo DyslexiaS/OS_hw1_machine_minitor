@@ -58,6 +58,8 @@ int main(int argc, char **argv)
 			break;
 			}	*/
 
+
+
 		bzero(&server,sizeof(server));	//init
 		server.sin_family = AF_INET;
 		server.sin_addr.s_addr = inet_addr("127.0.0.1"); //IP addr
@@ -79,7 +81,7 @@ int main(int argc, char **argv)
 		recv(sockfd, buffer, sizeof(buffer), 0);
 		printf("%s\n",buffer);
 		close(sockfd);
-		return 0;
 	}
+	return 0;
 }
 

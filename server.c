@@ -1,10 +1,6 @@
-#include "server.h"
-
-int main(int argc, char **argv)
+#include"server.h"
+#define SERV_PORT 8740
+int main (int argc, char **argv)
 {
-// write someting here...
 	return 0;
 }
-
-
-

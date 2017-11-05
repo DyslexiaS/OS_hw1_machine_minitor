@@ -10,10 +10,9 @@ int main ()
 	char choose;
 	char *pid = (char*)malloc(20);
 	bzero(pid, 20);
-	char *ppid = (char*)malloc(20);
-	bzero(ppid, 20);
-	char buffer[2048];
 	int a;
+	char *ppid;
+	char buffer[2048];
 	FILE* fptr;
 	memset(buffer, 0, 2048);
 	printf("what?");
@@ -25,7 +24,6 @@ int main ()
 	struct dirent* ptr;
 	switch (choose) {
 	case 'a':
-		memset(buffer, 0, 2048);
 		dir = opendir("/proc");
 		while((ptr = readdir(dir))!= NULL) {
 			if(ptr->d_name[0]>'0' && ptr->d_name[0]<='9') {
@@ -37,7 +35,6 @@ int main ()
 		closedir(dir);
 		break;
 	case 'b':
-		memset(buffer, 0, 2048);
 		strcpy(path,"/proc/");
 		strcat(path, pid);
 		strcat(path, task);
@@ -56,7 +53,6 @@ int main ()
 		closedir(dir);
 		break;
 	case 'c':
-		memset(buffer, 0, 2048);
 		strcpy(path,"/proc/");
 		strcat(path, pid);
 		strcat(path, task);
@@ -78,7 +74,6 @@ int main ()
 		printf("%s\n", buffer);
 		break;
 	case 'd':
-		memset(buffer, 0, 2048);
 		strcpy(path,"/proc/");
 		strcat(path, pid);
 		strcat(path, "/");
@@ -93,7 +88,6 @@ int main ()
 		printf("%s\n", buffer);
 		break;
 	case 'e':
-		memset(buffer, 0, 2048);
 		strcpy(path,"/proc/");
 		strcat(path, pid);
 		strcat(path, "/");
@@ -109,7 +103,6 @@ int main ()
 		printf("%s\n", buffer);
 		break;
 	case 'f':
-		memset(buffer, 0, 2048);
 		strcpy(path,"/proc/");
 		strcat(path, pid);
 		strcat(path, "/");
@@ -124,7 +117,6 @@ int main ()
 		printf("%s\n", buffer);
 		break;
 	case 'g':
-		memset(buffer, 0, 2048);
 		strcpy(path,"/proc/");
 		strcat(path, pid);
 		strcat(path, "/");
@@ -140,36 +132,44 @@ int main ()
 		printf("%s\n", buffer);
 		break;
 	case 'h':
-		memset(buffer, 0, 2048);
 		strcpy(path,"/proc/");
 		strcat(path, pid);
 		strcat(path, "/");
 		strcat(path, "status");
-		while(fptr = fopen(path, "r")) {
+		errno=0;
+		fptr = NULL;
+		while((fptr = fopen(path, "r"))!=NULL) {
+			if(errno) {
+				printf("This pid isn't exist.");
+				return 1;
+			}
+			//memset(ppid, 0, 20);  (segmentation fault)
 			for(int i=0; i<6; ++i)
 				fgets(buffer,2048,fptr);
-			ppid = strtok(buffer, '\t');
-			ppid = strtok(buffer, '\n');
-
-			if(ppid!=0) {
-				strcpy(pid, ppid);
+			ppid = strtok(buffer, "\t");
+			ppid = strtok(NULL, "\n");
+			if(ppid[0] != '0') {
+				strcpy(pid,ppid);
 				strcpy(path,"/proc/");
 				strcat(path, pid);
 				strcat(path, "/");
 				strcat(path, "status");
+				printf("path=%s",path);
 				fclose(fptr);
 				continue;
 			} else {
+				fclose(fptr);
+				fptr = fopen(path, "r");
 				for(int i=0; i<5; ++i)
 					fgets(buffer,2048,fptr);
 				fclose(fptr);
 				printf("%s\n", buffer);
 				break;
 			}
+			errno=0;
 		}
 		break;
 	case 'i':
-		memset(buffer, 0, 2048);
 		strcpy(path,"/proc/");
 		strcat(path, pid);
 		strcat(path, "/");
@@ -188,7 +188,6 @@ int main ()
 			printf("%s\n", buffer);
 		break;
 	case 'j':
-		memset(buffer, 0, 2048);
 		strcpy(path,"/proc/");
 		strcat(path, pid);
 		strcat(path, "/");
@@ -207,6 +206,7 @@ int main ()
 			printf("%s\n", buffer);
 		break;
 	case 'k':
+		exit(1);
 		break;
 	}
 	return 0;

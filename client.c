@@ -1,9 +1,11 @@
 #include"client.h"
-#define SERV_PORT 8740
-char choose, pid;
+char choose[100] = "";
+char pid[200] = "";
+char buffer[2048];
+int	sockfd;
+sockaddr_in server;
 int initial()
 {
-	fflush(stdin);
 	puts("===================================================");
 	puts("(a)list all process ids");
 	puts("(b)thread's IDs");
@@ -16,50 +18,21 @@ int initial()
 	puts("(i)virtual memory size(VmSize)");
 	puts("(j)physical memory size(VmRSS)");
 	puts("(k)exit");
-	printf("which? ");
-	scanf("%c", &choose);
-	printf("\n");
-	if(choose=='k')	exit(-1);
-	else if((choose<65||choose>105))return 0;
-	else if(choose=='a')return 0;
-	else {
-		getchar();
-		printf("pid? ");
-		scanf("%c", &pid);
-		printf("\n");
-		getchar();
+	printf("which?");
+	setbuf(stdin, NULL);
+	scanf("%s", &choose);
+	if((choose[0]>'a'&&choose[0]<'k')) {
+		strcpy(pid,"");
+		printf("pid?");
+		setbuf(stdin, NULL);
+		scanf("%s", &pid);
 	}
 	return 0;
 }
-typedef struct {
-	short			sin_family;		//AF_INET(IPv4)
-	unsigned short	sin_port;		//port No
-	struct	in_addr	sin_addr;
-	char			sin_zero[8];
-} sockaddr_in;
-
-typedef struct {
-	unsigned long s_addr;			//load with inet+pton()
-} in_addr;
-
-typedef struct {
-	unsigned short  sa_family;//addr of family, AF_XXXX
-	char			sa_data[14];//14 bytes of protocol addr
-} sockaddr;
-char buffer[2048];
-int	sockfd;
-sockaddr_in server;
 int main(int argc, char **argv)
 {
 	while(1) {
-		//initial();
-		/*	switch (choose){
-			case 'a':
-			break;
-			}	*/
-
-
-
+		initial();
 		bzero(&server,sizeof(server));	//init
 		server.sin_family = AF_INET;
 		server.sin_addr.s_addr = inet_addr("127.0.0.1"); //IP addr
@@ -67,19 +40,22 @@ int main(int argc, char **argv)
 
 		//creat socket
 		sockfd = socket(PF_INET, SOCK_STREAM, 0);
-		if (sockfd == -1) {
+		if (sockfd == -1)
 			printf("Fail to create a socket.\n");
-		}
-
 		int err = connect(sockfd,(sockaddr*)&server, sizeof(server));
 		if(err<0) {
 			printf("Fail to connect.\n");
 			return 1;
-		} else printf("Connected\n");
-		char message[]= {"client"};
-		send(sockfd, message, sizeof(message), 0);
+		}
+		send(sockfd, choose, sizeof(choose), 0);
+		if(choose[0]!='k') printf("Connected\n");
+		else exit(1);
+		send(sockfd, pid, sizeof(pid), 0);
 		recv(sockfd, buffer, sizeof(buffer), 0);
-		printf("%s\n",buffer);
+		char message[100];
+		recv(sockfd, message, sizeof(message), 0);
+		printf("%s\n", buffer);
+		printf("%s\n", message);
 		close(sockfd);
 	}
 	return 0;

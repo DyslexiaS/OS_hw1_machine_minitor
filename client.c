@@ -33,6 +33,9 @@ int main(int argc, char **argv)
 {
 	while(1) {
 		initial();
+		char message[100];
+		memset(buffer, 0, 2048);
+		memset(message, 0, 100);
 		bzero(&server,sizeof(server));	//init
 		server.sin_family = AF_INET;
 		server.sin_addr.s_addr = inet_addr("127.0.0.1"); //IP addr
@@ -52,10 +55,10 @@ int main(int argc, char **argv)
 		else exit(1);
 		send(sockfd, pid, sizeof(pid), 0);
 		recv(sockfd, buffer, sizeof(buffer), 0);
-		char message[100];
 		recv(sockfd, message, sizeof(message), 0);
 		printf("%s\n", buffer);
 		printf("%s\n", message);
+		memset(buffer, 0, 2048);
 		close(sockfd);
 	}
 	return 0;

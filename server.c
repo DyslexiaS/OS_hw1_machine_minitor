@@ -220,9 +220,10 @@ int client_choice()
 		}
 		for(int i=0; i<17; ++i)
 			fgets(buffer,2048,fptr);
-		if(buffer[0]!='V') {
+		if(strncmp(buffer,"VmSize",6)!=0) {
 			strcpy(message, "The process don't have VmSize.");
 			printf("The process don't have VmSize.");
+			memset(buffer,0,2048);
 			fclose(fptr);
 		} else
 			printf("%s\n", buffer);
@@ -238,9 +239,10 @@ int client_choice()
 		}
 		for(int i=0; i<21; ++i)
 			fgets(buffer,2048,fptr);
-		if(buffer[0]!='V') {
+		if(strncmp(buffer,"VmRSS",6)!=0) {
 			strcpy(message, "The process don't have VmRSS.");
 			printf("The process don't have VmRSS.");
+			memset(buffer,0,2048);
 			fclose(fptr);
 		} else
 			printf("%s\n", buffer);

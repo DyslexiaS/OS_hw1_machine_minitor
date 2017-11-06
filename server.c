@@ -61,6 +61,8 @@ void *connection_handler(void *sockfd)
 }
 int client_choice()
 {
+	char tmp[50];
+	memset(tmp,0,50);
 	memset(buffer, 0, 2048);
 	strcpy(message, "You can continue to key in.");
 	strcpy(path, "/proc/");
@@ -87,10 +89,12 @@ int client_choice()
 		}
 		while((ptr = readdir(dir))!= NULL) {
 			if(ptr->d_name[0]>'0' && ptr->d_name[0]<='9') {
-				strcat(buffer,ptr->d_name);
-				strcat(buffer," ");
+				strcat(tmp,ptr->d_name);
+				strcat(tmp," ");
 			}
 		}
+		strcpy(buffer,"tid:  ");
+		strcat(buffer,tmp);
 		printf("%s\n", buffer);
 		closedir(dir);
 		break;
@@ -152,6 +156,7 @@ int client_choice()
 			return 1;
 		}
 		fgets(buffer,2048,fptr);
+		if(strlen(buffer)==0)strcpy(message, "NO cmdline.");
 		fclose(fptr);
 		printf("%s\n", buffer);
 		break;

@@ -58,7 +58,6 @@ int main(int argc, char **argv)
 		recv(sockfd, message, sizeof(message), 0);
 		printf("%s\n", buffer);
 		printf("%s\n", message);
-		memset(buffer, 0, 2048);
 		close(sockfd);
 	}
 	return 0;

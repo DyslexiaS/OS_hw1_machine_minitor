@@ -239,7 +239,7 @@ int client_choice()
 		}
 		for(int i=0; i<21; ++i)
 			fgets(buffer,2048,fptr);
-		if(strncmp(buffer,"VmRSS",6)!=0) {
+		if(strncmp(buffer,"VmRSS",5)!=0) {
 			strcpy(message, "The process don't have VmRSS.");
 			printf("The process don't have VmRSS.");
 			memset(buffer,0,2048);

@@ -1,6 +1,7 @@
 #include"server.h"
 #define SERV_PORT 8740
 char buffer[2048];
+char ppid_buf[100];
 int sockfd = 0, new_sock=0;
 char path[30] = "/proc/";
 char task[10] = "/task";
@@ -49,7 +50,7 @@ void *connection_handler(void *sockfd)
 	//Get socket descriptor
 	int sock = *(int*)sockfd;
 	recv(sock, choose, sizeof(choose), 0);
-	if(choose[0]=='k') exit(1);
+	if(choose[0]=='k') pthread_exit(1);
 	printf("choose=%c\n",choose[0]);
 	recv(sock, pid, sizeof(pid), 0);
 	printf("pid=%s\n",pid);
@@ -181,8 +182,8 @@ int client_choice()
 			}
 			//	memset(ppid, 0, 20);  (segmentation fault)
 			for(int i=0; i<6; ++i)
-				fgets(buffer,2048,fptr);
-			ppid = strtok(buffer, "\t");
+				fgets(ppid_buf,2048,fptr);
+			ppid = strtok(ppid_buf, "\t");
 			ppid = strtok(NULL, "\n");
 			if(ppid[0] != '0') {
 				strcpy(pid,ppid);
@@ -191,14 +192,17 @@ int client_choice()
 				strcat(path, "/");
 				strcat(path, "status");
 				printf("path=%s\n",path);
+				strcat(buffer,ppid);
+				strcat(buffer," ");
 				fclose(fptr);
 				continue;
 			} else {
 				fclose(fptr);
-				fptr = fopen(path, "r");
-				for(int i=0; i<5; ++i)
-					fgets(buffer,2048,fptr);
-				fclose(fptr);
+				//	fptr = fopen(path, "r");
+				//	for(int i=0; i<5; ++i)
+				//		fgets(ppid_buf,100,fptr);
+				//	fclose(fptr);
+				strcat(buffer,"0");
 				printf("%s\n", buffer);
 				break;
 			}

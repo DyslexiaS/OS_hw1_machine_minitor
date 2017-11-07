@@ -2,21 +2,16 @@
 #define SERV_PORT 8740
 char buffer[2048];
 char ppid_buf[100];
-int sockfd = 0, new_sock=0;
+int sockfd , *new_sock, accept_sock;
 char path[30] = "/proc/";
 char task[10] = "/task";
-char choose[100];
-char message[100];
-char* pid;
+char choose[100],pid[100],message[100];
 char* ppid;
 FILE* fptr;
 DIR* dir;
 struct dirent* ptr;
 int main (int argc, char **argv)
 {
-	memset(buffer, 0, 2048);
-	pid = (char*)malloc(20);
-	bzero(pid,20);
 	sockaddr_in serv_info,client_info;
 	int addrlen = sizeof(client_info);
 	bzero(&serv_info,sizeof(serv_info));	//init
@@ -34,14 +29,16 @@ int main (int argc, char **argv)
 	}
 	listen(sockfd, 5);
 	//pthread
-	while(new_sock = accept(sockfd, (sockaddr*)&client_info, &addrlen))	{
+	while(accept_sock = accept(sockfd, (sockaddr*)&client_info, &addrlen))	{
 		puts("Connection accepted");
 		pthread_t new_thread;
-		if( pthread_create(&new_thread, NULL, connection_handler, (void*)&new_sock)<0) {
+		new_sock = malloc(1);
+		*new_sock = accept_sock;
+		if( pthread_create(&new_thread, NULL, connection_handler, (void*)new_sock)<0) {
 			perror("Couldn't create thread.\n");
 			return 1;
 		}
-		pthread_join(new_thread, NULL);
+
 	}
 	return 0;
 }
@@ -49,21 +46,26 @@ void *connection_handler(void *sockfd)
 {
 	//Get socket descriptor
 	int sock = *(int*)sockfd;
-	recv(sock, choose, sizeof(choose), 0);
-	if(choose[0]=='k') pthread_exit(1);
-	printf("choose=%c\n",choose[0]);
-	recv(sock, pid, sizeof(pid), 0);
-	printf("pid=%s\n",pid);
-	client_choice();
-	send(sock, buffer, sizeof(buffer), 0);
-	send(sock, message, strlen(message), 0);
+	while(1) {
+		memset(choose,0,100);
+		memset(pid,0,100);
+		recv(sock, choose, sizeof(choose), 0);
+		if(choose[0]=='k') break;
+		printf("choose=%s\n",choose);
+		//if(choose[0]!='a')
+		recv(sock, pid, sizeof(pid), 0);
+		printf("pid=%s\n",pid);
+		client_choice();
+		send(sock, buffer, sizeof(buffer), 0);
+		send(sock, message, strlen(message), 0);
+	}
+	pthread_exit(1);
 	return 0;
 }
 int client_choice()
 {
-	char tmp[50];
-	memset(tmp,0,50);
 	memset(buffer, 0, 2048);
+	memset(message, 0, 100);
 	strcpy(message, "You can continue to key in.");
 	strcpy(path, "/proc/");
 	strcat(path, pid);
@@ -89,12 +91,10 @@ int client_choice()
 		}
 		while((ptr = readdir(dir))!= NULL) {
 			if(ptr->d_name[0]>'0' && ptr->d_name[0]<='9') {
-				strcat(tmp,ptr->d_name);
-				strcat(tmp," ");
+				strcat(buffer,ptr->d_name);
+				strcat(buffer," ");
 			}
 		}
-		strcpy(buffer,"tid:  ");
-		strcat(buffer,tmp);
 		printf("%s\n", buffer);
 		closedir(dir);
 		break;
@@ -125,7 +125,7 @@ int client_choice()
 		fptr = fopen(path,"r");
 		if(fptr==NULL) {
 			strcpy(message, "This pid isn't exist.");
-			printf("Open failure");
+			printf("Open failure\n");
 			return 1;
 		}
 		fgets(buffer,2048,fptr);
@@ -138,7 +138,7 @@ int client_choice()
 		fptr = fopen(path,"r");
 		if(fptr==NULL) {
 			strcpy(message, "This pid isn't exist.");
-			printf("Open failure");
+			printf("Open failure\n");
 			return 1;
 		}
 		for(int i=0; i<2; ++i)
@@ -152,11 +152,11 @@ int client_choice()
 		fptr = fopen(path,"r");
 		if(fptr==NULL) {
 			strcpy(message, "This pid isn't exist.");
-			printf("Open failure");
+			printf("Open failure\n");
 			return 1;
 		}
 		fgets(buffer,2048,fptr);
-		if(strlen(buffer)==0)strcpy(message, "NO cmdline.");
+		if(strlen(buffer)==0) strcpy(message, "NO cmdline");
 		fclose(fptr);
 		printf("%s\n", buffer);
 		break;
@@ -166,7 +166,7 @@ int client_choice()
 		fptr = fopen(path,"r");
 		if(fptr==NULL) {
 			strcpy(message, "This pid isn't exist.");
-			printf("Open failure");
+			printf("Open failure\n");
 			return 1;
 		}
 		for(int i=0; i<6; ++i)
@@ -182,7 +182,7 @@ int client_choice()
 		while((fptr = fopen(path, "r"))!=NULL) {
 			if(errno) {
 				strcpy(message, "This pid isn't exist.");
-				printf("This pid isn't exist.");
+				printf("This pid isn't exist.\n");
 				return 1;
 			}
 			//	memset(ppid, 0, 20);  (segmentation fault)
@@ -220,14 +220,14 @@ int client_choice()
 		fptr = fopen(path,"r");
 		if(fptr==NULL) {
 			strcpy(message, "This pid isn't exist.");
-			printf("Open failure");
+			printf("Open failure\n");
 			return 1;
 		}
 		for(int i=0; i<17; ++i)
 			fgets(buffer,2048,fptr);
 		if(strncmp(buffer,"VmSize",6)!=0) {
 			strcpy(message, "The process don't have VmSize.");
-			printf("The process don't have VmSize.");
+			printf("The process don't have VmSize.\n");
 			memset(buffer,0,2048);
 			fclose(fptr);
 		} else
@@ -239,14 +239,14 @@ int client_choice()
 		fptr = fopen(path,"r");
 		if(fptr==NULL) {
 			strcpy(message, "This pid isn't exist.");
-			printf("Open failure");
+			printf("Open failure\n");
 			return 1;
 		}
 		for(int i=0; i<21; ++i)
 			fgets(buffer,2048,fptr);
 		if(strncmp(buffer,"VmRSS",5)!=0) {
 			strcpy(message, "The process don't have VmRSS.");
-			printf("The process don't have VmRSS.");
+			printf("The process don't have VmRSS.\n");
 			memset(buffer,0,2048);
 			fclose(fptr);
 		} else

@@ -2,7 +2,7 @@
 #define SERV_PORT 8740
 char buffer[2048];
 char ppid_buf[100];
-int sockfd , *new_sock, accept_sock;
+int sockfd, *new_sock, accept_sock;
 char path[30] = "/proc/";
 char task[10] = "/task";
 char choose[100],pid[100],message[100];
